@@ -197,6 +197,23 @@ public class ProjectServiceImpl implements ProjectService {
         }
         collaborator.getCollaboratingProjects().remove(project);
 
+        projectTaskRepository.unassignUserFromTasksInProject(projectId, collaboratorUserId);
+
         projectRepository.save(project);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void verifyUserIsProjectMember(UUID projectId, UUID userId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found with ID: " + projectId));
+
+        boolean isOwner = project.getOwner().getId().equals(userId);
+        boolean isCollaborator = project.getCollaborators().stream()
+                .anyMatch(collaborator -> collaborator.getId().equals(userId));
+
+        if (!isOwner && !isCollaborator) {
+            throw new UnauthorizedOperationException("User is not authorized for this project operation.");
+        }
     }
 }
