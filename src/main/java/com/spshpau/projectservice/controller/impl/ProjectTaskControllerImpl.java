@@ -53,7 +53,7 @@ public class ProjectTaskControllerImpl implements ProjectTaskController {
     @GetMapping
     public ResponseEntity<Page<TaskResponseDto>> getTasksForProject(@PathVariable UUID projectId,
                                                                     @AuthenticationPrincipal Jwt jwt,
-                                                                    @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+                                                                    @PageableDefault(size = 50, sort = "createdAt") Pageable pageable) {
         UUID currentUserId = getUserIdFromJwt(jwt);
         Page<TaskResponseDto> tasks = projectTaskService.getTasksForProject(projectId, currentUserId, pageable);
         return ResponseEntity.ok(tasks);
