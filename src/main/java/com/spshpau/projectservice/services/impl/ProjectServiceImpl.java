@@ -216,4 +216,12 @@ public class ProjectServiceImpl implements ProjectService {
             throw new UnauthorizedOperationException("User is not authorized for this project operation.");
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUserOwnerOfProject(UUID projectId, UUID userId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found with ID: " + projectId));
+        return project.getOwner().getId().equals(userId);
+    }
 }

@@ -23,4 +23,5 @@ public interface ProjectService {
     ProjectResponseDto addCollaborator(UUID projectId, UUID collaboratorUserId, UUID ownerId, String bearerToken);
     void removeCollaborator(UUID projectId, UUID collaboratorUserId, UUID ownerId);
     void verifyUserIsProjectMember(UUID projectId, UUID userId);
+    boolean isUserOwnerOfProject(UUID projectId, UUID userId);
 }
