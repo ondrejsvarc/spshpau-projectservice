@@ -1,14 +1,13 @@
 package com.spshpau.projectservice.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -33,4 +32,15 @@ public class SimpleUser {
 
     @Column
     private String location;
+
+    // Relationships
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Project> ownedProjects = new HashSet<>();
+
+    @ManyToMany(mappedBy = "collaborators")
+    private Set<Project> collaboratingProjects = new HashSet<>();
+
+    @OneToMany(mappedBy = "assignedUser")
+    private Set<ProjectTask> assignedTasks = new HashSet<>();
 }

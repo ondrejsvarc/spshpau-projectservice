@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -25,4 +27,13 @@ public class ProjectBudget {
 
     @Column(nullable = false)
     private float totalAmount;
+
+    // Relationships
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false, unique = true)
+    private Project project;
+
+    @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<BudgetExpense> expenses = new HashSet<>();
 }

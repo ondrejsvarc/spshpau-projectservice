@@ -29,4 +29,10 @@ public class BudgetExpense {
 
     @Column(columnDefinition = "TEXT")
     private String comment;
+
+    // Relationships
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "budget_id", nullable = false)
+    private ProjectBudget budget;
 }
