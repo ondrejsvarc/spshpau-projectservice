@@ -18,8 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ProjectBudget {
     @Id
-    @Column(nullable = false, unique = true, updatable = false)
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -31,7 +29,8 @@ public class ProjectBudget {
     // Relationships
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false, unique = true)
+    @MapsId
+    @JoinColumn(name = "project_id")
     private Project project;
 
     @OneToMany(mappedBy = "budget", cascade = CascadeType.ALL, orphanRemoval = true)
