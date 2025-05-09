@@ -88,7 +88,6 @@ class SimpleUserServiceImplTest {
         when(simpleUserRepository.findById(testUserSummaryDto.getId())).thenReturn(Optional.empty());
         when(simpleUserRepository.save(any(SimpleUser.class))).thenAnswer(invocation -> {
             SimpleUser userToSave = invocation.getArgument(0);
-            // Simulate saving by returning the same user with its ID (already set in this case)
             return userToSave;
         });
 
@@ -135,7 +134,7 @@ class SimpleUserServiceImplTest {
 
         assertNotNull(resultUser);
         assertEquals(testUser.getId(), resultUser.getId());
-        assertEquals(testUser.getUsername(), resultUser.getUsername()); // Should return existing user's details
+        assertEquals(testUser.getUsername(), resultUser.getUsername());
         verify(simpleUserRepository, times(1)).findById(testUserId);
         verify(simpleUserRepository, never()).save(any(SimpleUser.class));
     }
