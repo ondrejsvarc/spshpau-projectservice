@@ -21,6 +21,19 @@ public interface ProjectTaskController {
      * @param taskDto The task creation data.
      * @param jwt The JWT token for authentication and authorization.
      * @return A ResponseEntity containing the created TaskResponseDto and HTTP status.
+     * Example Response (201 Created):
+     * <pre>{@code
+     * {
+     * "id": "t1u2v3w4-x5y6-z7a8-b9c0-d1e2f3g4h5i6",
+     * "title": "Implement Feature X",
+     * "description": "Details about implementing Feature X.",
+     * "createdAt": "2024-05-09T11:00:00.000+00:00",
+     * "dueDate": "2024-05-20T23:59:59.000+00:00",
+     * "status": "TODO",
+     * "projectId": "c1d2e3f4-g5h6-7890-1234-567890abcdef",
+     * "assignedUser": null
+     * }
+     * }</pre>
      */
     ResponseEntity<TaskResponseDto> createTask(@PathVariable UUID projectId,
                                                @Valid @RequestBody TaskCreateDto taskDto,
@@ -33,6 +46,25 @@ public interface ProjectTaskController {
      * @param taskId The ID of the task to retrieve.
      * @param jwt The JWT token for authentication and authorization.
      * @return A ResponseEntity containing the TaskResponseDto and HTTP status.
+     * Example Response (200 OK):
+     * <pre>{@code
+     * {
+     * "id": "t1u2v3w4-x5y6-z7a8-b9c0-d1e2f3g4h5i6",
+     * "title": "Implement Feature X",
+     * "description": "Details about implementing Feature X.",
+     * "createdAt": "2024-05-09T11:00:00.000+00:00",
+     * "dueDate": "2024-05-20T23:59:59.000+00:00",
+     * "status": "IN_PROGRESS",
+     * "projectId": "c1d2e3f4-g5h6-7890-1234-567890abcdef",
+     * "assignedUser": {
+     * "id": "user-uuid-developer",
+     * "username": "dev_user",
+     * "firstName": "Bob",
+     * "lastName": "Builder",
+     * "location": "Dev City"
+     * }
+     * }
+     * }</pre>
      */
     ResponseEntity<TaskResponseDto> getTaskById(@PathVariable UUID projectId,
                                                 @PathVariable UUID taskId,
@@ -45,6 +77,22 @@ public interface ProjectTaskController {
      * @param jwt The JWT token for authentication and authorization.
      * @param pageable Pagination information.
      * @return A ResponseEntity containing a Page of TaskResponseDto and HTTP status.
+     * Example Response (200 OK):
+     * <pre>{@code
+     * {
+     * "content": [
+     * {
+     * "id": "t1u2v3w4-x5y6-z7a8-b9c0-d1e2f3g4h5i6",
+     * "title": "Implement Feature X",
+     * "status": "IN_PROGRESS",
+     * ...
+     * }
+     * ],
+     * "pageable": {"offset": 0, "pageSize": 50, ...},
+     * "totalElements": 1,
+     * ...
+     * }
+     * }</pre>
      */
     ResponseEntity<Page<TaskResponseDto>> getTasksForProject(@PathVariable UUID projectId,
                                                              Jwt jwt,
@@ -58,6 +106,19 @@ public interface ProjectTaskController {
      * @param taskDto The task update data.
      * @param jwt The JWT token for authentication and authorization.
      * @return A ResponseEntity containing the updated TaskResponseDto and HTTP status.
+     * Example Response (200 OK):
+     * <pre>{@code
+     * {
+     * "id": "t1u2v3w4-x5y6-z7a8-b9c0-d1e2f3g4h5i6",
+     * "title": "Implement Feature X (Updated)",
+     * "description": "Updated details.",
+     * "createdAt": "2024-05-09T11:00:00.000+00:00",
+     * "dueDate": "2024-05-22T23:59:59.000+00:00",
+     * "status": "REVIEW",
+     * "projectId": "c1d2e3f4-g5h6-7890-1234-567890abcdef",
+     * "assignedUser": {"id": "user-uuid-developer", ...}
+     * }
+     * }</pre>
      */
     ResponseEntity<TaskResponseDto> updateTask(@PathVariable UUID projectId,
                                                @PathVariable UUID taskId,
@@ -70,7 +131,7 @@ public interface ProjectTaskController {
      * @param projectId The ID of the project from which to delete the task.
      * @param taskId The ID of the task to delete.
      * @param jwt The JWT token for authentication and authorization.
-     * @return A ResponseEntity with no content and HTTP status.
+     * @return A ResponseEntity with no content and HTTP status 204.
      */
     ResponseEntity<Void> deleteTask(@PathVariable UUID projectId,
                                     @PathVariable UUID taskId,
@@ -84,6 +145,20 @@ public interface ProjectTaskController {
      * @param assigneeUserId The ID of the user to assign to the task.
      * @param jwt The JWT token for authentication and authorization.
      * @return A ResponseEntity containing the updated TaskResponseDto and HTTP status.
+     * Example Response (200 OK):
+     * <pre>{@code
+     * {
+     * "id": "t1u2v3w4-x5y6-z7a8-b9c0-d1e2f3g4h5i6",
+     * "title": "Implement Feature X",
+     * "status": "IN_PROGRESS",
+     * "assignedUser": {
+     * "id": "user-uuid-assignee",
+     * "username": "assignee_user",
+     * ...
+     * },
+     * ...
+     * }
+     * }</pre>
      */
     ResponseEntity<TaskResponseDto> assignUserToTask(@PathVariable UUID projectId,
                                                      @PathVariable UUID taskId,
@@ -97,6 +172,16 @@ public interface ProjectTaskController {
      * @param taskId The ID of the task from which the user will be unassigned.
      * @param jwt The JWT token for authentication and authorization.
      * @return A ResponseEntity containing the updated TaskResponseDto (with no assigned user) and HTTP status.
+     * Example Response (200 OK):
+     * <pre>{@code
+     * {
+     * "id": "t1u2v3w4-x5y6-z7a8-b9c0-d1e2f3g4h5i6",
+     * "title": "Implement Feature X",
+     * "status": "TODO",
+     * "assignedUser": null,
+     * ...
+     * }
+     * }</pre>
      */
     ResponseEntity<TaskResponseDto> removeUserFromTask(@PathVariable UUID projectId,
                                                        @PathVariable UUID taskId,
