@@ -43,28 +43,30 @@ public class BudgetServiceImpl implements BudgetService {
             log.error("User {} is not owner of project {}. Budget creation denied.", currentUserId, projectId);
             throw new UnauthorizedOperationException("Only the project owner can create a budget.");
         }
-        if (projectBudgetRepository.existsById(projectId)) {
-            log.warn("Budget already exists for project ID: {}. Request by user {}.", projectId, currentUserId);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found with ID: " + projectId));
+
+        if (project.getBudget() != null) {
             throw new BudgetAlreadyExistsException("Budget already exists for project ID: " + projectId);
         }
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> {
-                    log.warn("Project not found with ID: {} during budget creation by user {}", projectId, currentUserId);
-                    return new ProjectNotFoundException("Project not found with ID: " + projectId);
-                });
 
         ProjectBudget budget = new ProjectBudget();
-        budget.setId(projectId);
         budget.setProject(project);
         budget.setCurrency(budgetDto.getCurrency());
         budget.setTotalAmount(budgetDto.getTotalAmount());
 
-        ProjectBudget savedBudget = projectBudgetRepository.save(budget);
-        project.setBudget(savedBudget);
-        projectRepository.save(project);
+        project.setBudget(budget);
 
-        log.info("Budget created successfully for project {} by user {}", projectId, currentUserId);
-        return BudgetResponseDto.fromEntity(savedBudget, 0f);
+        Project savedProject = projectRepository.save(project);
+
+        ProjectBudget persistedBudget = savedProject.getBudget();
+
+        if (persistedBudget == null || persistedBudget.getId() == null) {
+            throw new IllegalStateException("Budget was not persisted correctly or its ID was not set. Project ID: " + projectId);
+        }
+
+        return BudgetResponseDto.fromEntity(persistedBudget, 0f);
     }
 
     @Override
