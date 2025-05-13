@@ -4,6 +4,7 @@ import com.spshpau.projectservice.dto.*;
 import com.spshpau.projectservice.model.BudgetExpense;
 import com.spshpau.projectservice.model.Project;
 import com.spshpau.projectservice.model.ProjectBudget;
+import com.spshpau.projectservice.model.SimpleUser;
 import com.spshpau.projectservice.repositories.BudgetExpenseRepository;
 import com.spshpau.projectservice.repositories.ProjectBudgetrepository;
 import com.spshpau.projectservice.repositories.ProjectRepository;
@@ -12,6 +13,7 @@ import com.spshpau.projectservice.services.exceptions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -123,24 +125,60 @@ class BudgetServiceImplTest {
     // --- createProjectBudget Tests ---
     @Test
     void createProjectBudget_success() {
-        UUID newProjectId = UUID.randomUUID();
-        Project newProject = new Project(); newProject.setId(newProjectId);
-        when(projectService.isUserOwnerOfProject(newProjectId, currentUserId)).thenReturn(true);
-        when(projectBudgetRepository.existsById(newProjectId)).thenReturn(false);
-        when(projectRepository.findById(newProjectId)).thenReturn(Optional.of(newProject));
-        when(projectBudgetRepository.save(any(ProjectBudget.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // Set up
+        projectId = UUID.randomUUID();
+        currentUserId = UUID.randomUUID();
 
+        SimpleUser owner = new SimpleUser();
+        owner.setId(currentUserId);
 
-        BudgetResponseDto response = budgetService.createProjectBudget(newProjectId, budgetCreateDto, currentUserId);
+        project = new Project();
+        project.setId(projectId);
+        project.setTitle("Test Project");
+        project.setOwner(owner);
 
-        assertNotNull(response);
-        assertEquals(budgetCreateDto.getCurrency(), response.getCurrency());
-        assertEquals(budgetCreateDto.getTotalAmount(), response.getTotalAmount());
-        assertEquals(0f, response.getSpentAmount());
-        verify(projectBudgetRepository).save(any(ProjectBudget.class));
-        verify(projectRepository).save(newProject);
+        budgetCreateDto = new BudgetCreateDto();
+        budgetCreateDto.setCurrency("USD");
+        budgetCreateDto.setTotalAmount(10000f);
+
+        // Test
+        when(projectService.isUserOwnerOfProject(projectId, currentUserId)).thenReturn(true);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> {
+            Project projectToSave = invocation.getArgument(0);
+            if (projectToSave.getBudget() != null && projectToSave.getBudget().getId() == null) {
+                projectToSave.getBudget().setId(projectToSave.getId());
+            }
+            return projectToSave;
+        });
+
+        BudgetResponseDto result = budgetService.createProjectBudget(projectId, budgetCreateDto, currentUserId);
+
+        assertNotNull(result);
+        assertEquals(projectId, result.getProjectId());
+        assertEquals(budgetCreateDto.getCurrency(), result.getCurrency());
+        assertEquals(budgetCreateDto.getTotalAmount(), result.getTotalAmount());
+        assertEquals(0f, result.getSpentAmount());
+        assertEquals(budgetCreateDto.getTotalAmount(), result.getRemainingAmount());
+        assertNotNull(result.getExpenses());
+        assertTrue(result.getExpenses().isEmpty());
+
+        verify(projectService).isUserOwnerOfProject(projectId, currentUserId);
+        verify(projectRepository).findById(projectId);
+
+        ArgumentCaptor<Project> projectArgumentCaptor = ArgumentCaptor.forClass(Project.class);
+        verify(projectRepository).save(projectArgumentCaptor.capture());
+        Project savedProject = projectArgumentCaptor.getValue();
+
+        assertNotNull(savedProject.getBudget());
+        assertEquals(projectId, savedProject.getBudget().getId());
+        assertEquals(budgetCreateDto.getCurrency(), savedProject.getBudget().getCurrency());
+        assertEquals(budgetCreateDto.getTotalAmount(), savedProject.getBudget().getTotalAmount());
+        assertSame(project, savedProject.getBudget().getProject(), "The budget's project reference should be the original project instance.");
+
+        verify(projectBudgetRepository, never()).existsById(any(UUID.class));
     }
+
 
     @Test
     void createProjectBudget_fail_notOwner() {
